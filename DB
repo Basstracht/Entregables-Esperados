@@ -1,0 +1,88 @@
+-- Habilitar el soporte de claves foráneas en SQLite
+PRAGMA foreign_keys = ON;
+
+-- ========================================================
+-- 1. TABLA: ALUMNOS
+-- ========================================================
+CREATE TABLE alumnos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    telefono TEXT NOT NULL,
+    paquete TEXT NOT NULL,
+    clases_disponibles INTEGER DEFAULT 8
+);
+
+-- ========================================================
+-- 2. TABLA: INSTRUCTORES
+-- ========================================================
+-- Separamos los instructores para poder gestionar sus tags y rendimiento en el Admin Panel
+CREATE TABLE instructores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    especialidad TEXT NOT NULL,
+    horario_pico TEXT,
+    porcentaje_ocupacion REAL DEFAULT 0.0,
+    tag TEXT -- Ejemplo: 'Destacada del mes', 'Sueldo Premium'
+);
+
+-- ========================================================
+-- 3. TABLA: CLASES PROGRAMADAS
+-- ========================================================
+CREATE TABLE clases_programadas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_clase TEXT NOT NULL,
+    horario TEXT NOT NULL,          -- Ejemplo: '19:00' o 'Mar 09:30'
+    duracion TEXT DEFAULT '60 min',
+    cupos_totales INTEGER DEFAULT 15,
+    cupos_disponibles INTEGER DEFAULT 15,
+    instructor_id INTEGER,          -- Conectamos la clase con el ID del instructor
+    FOREIGN KEY (instructor_id) REFERENCES instructores(id) ON DELETE SET NULL
+);
+
+-- ========================================================
+-- 4. TABLA: RESERVAS (¡La pieza que faltaba!)
+-- ========================================================
+-- Esta tabla une a los alumnos con las clases que reservan desde su portal
+CREATE TABLE reservas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alumno_id INTEGER NOT NULL,
+    clase_id INTEGER NOT NULL,
+    fecha_reserva TEXT DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+    FOREIGN KEY (clase_id) REFERENCES clases_programadas(id) ON DELETE CASCADE
+);
+
+-- ========================================================
+-- 5. TABLA: PAGOS
+-- ========================================================
+-- Para llevar el registro histórico de ingresos que lee el panel administrativo
+CREATE TABLE pagos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alumno_id INTEGER NOT NULL,
+    monto REAL NOT NULL,
+    fecha TEXT DEFAULT (date('now')),
+    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+);//DATOS PARA TABLA ALUMNO
+id,nombre,telefono,paquete,clases_disponibles
+1,María José Quintanilla,+56912345678,Paquete 10 Clases,8
+2,Juan Pablo Queraltó,+56987654321,Paquete 20 Clases,15
+3,Diana Bolocco,+56955554444,Mensualidad Ilimitada,24
+4,Pedro Pascal,+56999998888,Paquete 10 Clases,3
+//DATOS PARA TABLA INSTRUCTORES
+id,nombre,especialidad,horario_pico,porcentaje_ocupacion,tag
+1,Leo Rey,Kundalini Yoga & Meditación,Jue 19:00 PM,80.0,Sueldo Premium
+2,Tonka Tomicic,Vinyasa Flow Dinámico,Mar 09:30 AM,88.0,Destacada del Mes
+3,Rafael Araneda,Hatha Tradicional Terapéutico,Lun 08:30 AM,75.0,Full Time
+4,Karol G 🔥,Asanas Avanzadas y Power Yoga,Mié 12:00 PM,92.0,Máxima Ocupación
+//DATOS PARA CLASES PROGRAMADAS
+id,nombre_clase,horario,duracion,cupos_totales,cupos_disponibles,instructor_id
+1,Kundalini Yoga,19:00,60 min,15,15,1
+2,Vinyasa Flow,09:30,60 min,12,12,2
+3,Hatha Yoga,08:30,75 min,18,18,3
+4,Ashtanga Yoga,12:00,60 min,10,10,4
+//DATOS PARA TABLA DE PAGOS
+id,alumno_id,monto,fecha
+1,1,25000.0,2026-06-19
+2,2,38000.0,2026-06-19
+3,3,45000.0,2026-06-19
+4,4,25000.0,2026-06-19
